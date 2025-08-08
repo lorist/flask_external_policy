@@ -15,6 +15,7 @@ This project is a powerful, web-based external policy server for Pexip Infinity,
     * Grouped view to easily distinguish between service and participant rules.
 * **Dynamic Overrides:** For `continue` actions, you can dynamically override Pexip's default settings on a per-call basis for both service and participant properties.
 * **In-App Policy Tester:** A UI panel to simulate participant policy requests and preview the server's JSON response without making a live call.
+* **Live Log Viewer:** A real-time log stream, accessible from the dashboard, for advanced troubleshooting and monitoring of policy requests and responses.
 * **Database Migrations:** Uses Flask-Migrate (Alembic) to safely manage database schema changes without losing data.
 * **CLI Commands:** Includes commands for easy database setup, seeding with default rules, and complete resets for development.
 
@@ -111,7 +112,9 @@ In your Pexip Infinity Administrator interface, you need to point your policy pr
 
 ---
 
-## Testing Policies
+## Troubleshooting & Monitoring
+
+### In-App Policy Tester
 
 The dashboard includes a **Policy Tester** panel that allows you to simulate a participant policy request and see a live preview of the server's response.
 
@@ -121,7 +124,13 @@ The dashboard includes a **Policy Tester** panel that allows you to simulate a p
 4.  Click the **"Test Policy"** button.
 5.  The **Server Response Preview** box will update to show the exact JSON response the server would send to Pexip for that request.
 
-This allows you to verify your rules and their priorities without needing to make a live call.
+### Live Log Viewer
+
+For real-time monitoring, the application provides a live log stream.
+
+1.  From the main dashboard, click the **"View Live Log"** button. This will open the log viewer in a new tab.
+2.  The viewer will stream all incoming requests and the corresponding policy responses as they happen. This is the best way to see the full request URL from Pexip and troubleshoot why a specific rule did or did not match.
+3.  The server also writes these logs to a rotating file named `policy_server.log` in the project's root directory.
 
 ---
 
