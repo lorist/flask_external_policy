@@ -248,7 +248,7 @@ def test_participant_policy():
         app.logger.info(f"--> [TEST] PARTICIPANT REQUEST: {request.url}")
 
     request_data = dict(request.args)
-    rules = Rule.query.filter_by(policy_type='participant', is_enabled=True).order_by(Rule.priority.desc(), Rule.id.asc()).all()
+    rules = Rule.query.filter_by(policy_type='participant', is_enabled=True).order_by(Rule.priority.asc()).all()
     
     for rule in rules:
         if all(evaluate_condition(request_data.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
