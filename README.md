@@ -107,7 +107,7 @@ Here, you can manage all your policy rules.
 
 In your Pexip Infinity Administrator interface, you need to point your policy profiles to this server's endpoints:
 
-* **Participant Properties URL:** `http://<your_server_ip>:5000/policy/v1/participant/properties`
+* **Participant Properties URL:** `http://<your_server_ip>:5000`
 
 ---
 
