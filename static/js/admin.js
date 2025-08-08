@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     policyTestForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const params = new URLSearchParams();
+        const logToggle = document.getElementById('log-test-toggle');
 
         // Gather all the dynamic key-value pairs
         document.querySelectorAll('.test-param-row').forEach(row => {
@@ -32,6 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.append(key, value);
             }
         });
+
+        // --- NEW: Add the log_enabled parameter if the toggle is checked ---
+        if (logToggle.checked) {
+            params.append('log_enabled', 'true');
+        }
 
         const response = await fetch(`/admin/api/test-policy?${params.toString()}`);
         const data = await response.json();

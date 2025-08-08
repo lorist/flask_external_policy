@@ -397,3 +397,11 @@ input:checked + .slider:before {
     border-radius: 6px;
     padding: 1rem;
 }
+.tester-log-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: auto; /* Pushes it to the right */
+    color: var(--text-light);
+    font-size: 0.9rem;
+}

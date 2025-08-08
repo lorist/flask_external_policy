@@ -214,12 +214,25 @@ def test_participant_policy():
     A safe endpoint for the UI to test participant policy rules.
     This uses the exact same logic as the real endpoint.
     """
+    # --- NEW: Check for the log_enabled parameter ---
+    log_enabled = request.args.get('log_enabled') == 'true'
+    
+    if log_enabled:
+        app.logger.info(f"--> [TEST] PARTICIPANT REQUEST: {request.url}")
+
     request_data = dict(request.args)
-    # The logic here is identical to the production participant_properties endpoint
     rules = Rule.query.filter_by(policy_type='participant', is_enabled=True).order_by(Rule.priority.desc(), Rule.id.asc()).all()
+    
     for rule in rules:
         if all(evaluate_condition(request_data.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
-            return build_policy_response(rule)
+            response = build_policy_response(rule)
+            if log_enabled:
+                app.logger.info(f"<-- [TEST] RESPONSE: Matched '{rule.name}'. Sending {response.get_data(as_text=True).strip()}")
+            return response
+            
+    if log_enabled:
+        app.logger.info("<-- [TEST] RESPONSE: No match. Sending default 'continue'.")
+        
     return jsonify({"action": "continue"})
 
 # --- Database Seeding Commands ---
