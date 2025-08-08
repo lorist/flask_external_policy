@@ -85,19 +85,19 @@ def build_policy_response(rule):
 @app.route('/policy/v1/service/configuration', methods=['GET'])
 def service_configuration():
     app.logger.info(f"--> SERVICE REQUEST: {request.url}")
-    rules = Rule.query.filter_by(policy_type='service', is_enabled=True).order_by(Rule.priority.desc(), Rule.id.asc()).all()
-    for rule in rules:
-        if all(evaluate_condition(request.args.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
-            response = build_policy_response(rule)
-            app.logger.info(f"<-- RESPONSE: Matched '{rule.name}'. Sending {response.get_data(as_text=True).strip()}")
-            return response
+    # rules = Rule.query.filter_by(policy_type='service', is_enabled=True).order_by(Rule.priority.asc()).all()
+    # for rule in rules:
+    #     if all(evaluate_condition(request.args.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
+    #         response = build_policy_response(rule)
+    #         app.logger.info(f"<-- RESPONSE: Matched '{rule.name}'. Sending {response.get_data(as_text=True).strip()}")
+    #         return response
     app.logger.info("<-- RESPONSE: No match. Sending default 'continue'.")
     return jsonify({"status": "success", "action": "continue"})
 
 @app.route('/policy/v1/participant/properties', methods=['GET'])
 def participant_properties():
     app.logger.info(f"--> PARTICIPANT REQUEST: {request.url}")
-    rules = Rule.query.filter_by(policy_type='participant', is_enabled=True).order_by(Rule.priority.desc(), Rule.id.asc()).all()
+    rules = Rule.query.filter_by(policy_type='participant', is_enabled=True).order_by(Rule.priority.asc()).all()
     for rule in rules:
         if all(evaluate_condition(request.args.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
             response = build_policy_response(rule)
@@ -135,7 +135,17 @@ def log_stream():
 def handle_rules_collection():
     if request.method == 'POST':
         data = request.json
-        new_rule = Rule(name=data['name'], priority=data['priority'], policy_type=data['policy_type'])
+        # Count existing rules to determine the new priority (order)
+        last_priority = db.session.query(db.func.max(Rule.priority)).scalar()
+        new_priority = (last_priority or -1) + 1
+
+        # Create the new rule, automatically setting the priority and policy type
+        new_rule = Rule(
+            name=data['name'], 
+            priority=new_priority, 
+            policy_type='participant' # Hardcode to 'participant'
+        )
+        
         new_action = Action(
             action_type=data['action']['type'],
             parameters=json.dumps(data['action']['parameters']),
@@ -149,7 +159,7 @@ def handle_rules_collection():
         db.session.commit()
         return jsonify({'status': 'success', 'id': new_rule.id})
 
-    rules_query = Rule.query.order_by(Rule.priority.desc()).all()
+    rules_query = Rule.query.order_by(Rule.priority.asc()).all()
     rules_list = []
     for rule in rules_query:
         rule_dict = {
@@ -166,6 +176,23 @@ def handle_rules_collection():
         rules_list.append(rule_dict)
     return jsonify(rules_list)
 
+@app.route('/admin/api/rules/reorder', methods=['POST'])
+def reorder_rules():
+    data = request.json
+    rule_ids_in_order = data.get('order', [])
+    
+    try:
+        for index, rule_id in enumerate(rule_ids_in_order):
+            rule = Rule.query.get(rule_id)
+            if rule:
+                rule.priority = index # The index is the new priority
+        db.session.commit()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error reordering rules: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    
 @app.route('/admin/api/rules/<int:rule_id>/toggle', methods=['POST'])
 def toggle_rule_status(rule_id):
     rule = Rule.query.get_or_404(rule_id)

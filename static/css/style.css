@@ -405,3 +405,17 @@ input:checked + .slider:before {
     color: var(--text-light);
     font-size: 0.9rem;
 }
+.drag-handle {
+    cursor: grab;
+    color: var(--text-light);
+    margin-right: 0.5rem;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background: #c8ebfb;
+}
+
+.rule-card-slim .rule-info .rule-priority {
+    display: none; /* Hide the old priority number display */
+}

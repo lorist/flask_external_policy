@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         ruleEl.innerHTML = `
             <div class="rule-status"><label class="toggle-switch"><input type="checkbox" class="status-toggle" data-id="${rule.id}" ${rule.is_enabled ? 'checked' : ''}><span class="slider"></span></label></div>
-            <div class="rule-info"><span class="rule-priority">(P${rule.priority})</span><span class="rule-name">${rule.name}</span></div>
+            <div class="rule-info"><span class="drag-handle">☰</span><span class="rule-name">${rule.name}</span></div>
             <div class="rule-details"><span class="rule-conditions">IF: ${rule.conditions.map(c => `${c.field} ${c.operator} "${c.value}"`).join(', ')}</span><span class="rule-action">THEN: ${actionText}</span></div>
             <div class="rule-buttons"><button class="edit-btn" data-id="${rule.id}">Edit</button><button class="delete-btn" data-id="${rule.id}">Delete</button></div>
         `;
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelEditBtn.style.display = 'block';
         editingRuleIdInput.value = rule.id;
         document.getElementById('rule-name').value = rule.name;
-        document.getElementById('rule-priority').value = rule.priority;
+        
         conditionsContainer.innerHTML = '';
         rule.conditions.forEach(addConditionRow);
         actionTypeSelect.value = rule.action.type;
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ruleId = editingRuleIdInput.value;
         const ruleData = {
             name: document.getElementById('rule-name').value,
-            priority: parseInt(document.getElementById('rule-priority').value),
+
             policy_type: 'participant', // Hardcode to 'participant'
             conditions: Array.from(document.querySelectorAll('.condition-row')).map(row => ({
                 field: row.querySelector('.condition-field').value,
@@ -300,6 +300,25 @@ document.addEventListener('DOMContentLoaded', () => {
     viewLogBtn.addEventListener('click', () => {
         window.open('/admin/logs', '_blank');
     });
+
+    new Sortable(rulesContainer, {
+        animation: 150,
+        handle: '.drag-handle', // Specify the drag handle
+        ghostClass: 'sortable-ghost', // Class for the drop placeholder
+        onEnd: async (evt) => {
+            // Get all rule cards in their new order
+            const ruleElements = Array.from(rulesContainer.querySelectorAll('.rule-card-slim'));
+            const newOrder = ruleElements.map(el => el.dataset.ruleId);
+
+            // Send the new order to the backend
+            await fetch('/admin/api/rules/reorder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order: newOrder }),
+            });
+        }
+    });
+    
     // --- Initial Load ---
     fetchRules();
     resetForm();
