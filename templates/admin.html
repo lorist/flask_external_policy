@@ -19,6 +19,23 @@
             </div>
         </section>
 
+        <section class="policy-tester">
+            <h2>Policy Tester</h2>
+            <form id="policy-test-form">
+                <div id="test-params-container">
+                    <!-- Dynamic test parameters will be added here by JS -->
+                </div>
+                <div class="tester-buttons">
+                    <button type="button" id="add-test-param-btn">＋ Add Parameter</button>
+                    <button type="submit" class="submit-btn">Test Policy</button>
+                </div>
+            </form>
+            <div class="test-response">
+                <label>Server Response Preview</label>
+                <pre><code id="test-response-output">{ "action": "continue" }</code></pre>
+            </div>
+        </section>
+
         <main class="dashboard-main">
             <div class="rules-list-header">
                 <h2>Participant Properties Rules</h2>

@@ -175,6 +175,20 @@ def handle_rule(rule_id):
         db.session.commit()
         return jsonify({'status': 'success'})
 
+@app.route('/admin/api/test-policy', methods=['GET'])
+def test_participant_policy():
+    """
+    A safe endpoint for the UI to test participant policy rules.
+    This uses the exact same logic as the real endpoint.
+    """
+    request_data = dict(request.args)
+    # The logic here is identical to the production participant_properties endpoint
+    rules = Rule.query.filter_by(policy_type='participant', is_enabled=True).order_by(Rule.priority.desc(), Rule.id.asc()).all()
+    for rule in rules:
+        if all(evaluate_condition(request_data.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
+            return build_policy_response(rule)
+    return jsonify({"action": "continue"})
+
 # --- Database Seeding Commands ---
 def _seed_database():
     if Rule.query.first():

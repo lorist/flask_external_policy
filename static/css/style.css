@@ -25,11 +25,12 @@ body {
 .dashboard-container {
     display: grid;
     grid-template-columns: 1fr 400px;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto auto 1fr; /* Add an extra 'auto' row */
     grid-template-areas:
-        "header sidebar"
-        "stats  sidebar"
-        "main   sidebar";
+        "header  sidebar"
+        "stats   sidebar"
+        "tester  sidebar"  /* Add the new 'tester' area */
+        "main    sidebar";
     gap: 2rem;
     padding: 2rem;
     height: 100vh;
@@ -308,4 +309,62 @@ input:checked + .slider:before {
     background-color: #17a2b8;
     width: 100%;
     margin-top: 0.5rem;
+}
+.policy-tester {
+    grid-area: tester; 
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: 0;
+}
+.policy-tester h2 {
+    margin-top: 0;
+}
+.test-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.test-response {
+    margin-top: 1.5rem;
+}
+.test-response pre {
+    background: var(--bg-color);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+.form-notice {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    padding: 10px;
+    text-align: center;
+}
+
+.test-param-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.test-param-key {
+    flex: 1 1 40%;
+}
+.test-param-value {
+    flex: 1 1 60%;
+}
+.tester-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+#add-test-param-btn {
+    background-color: var(--text-light);
+    flex-grow: 1;
+}
+#policy-test-form .submit-btn {
+    flex-grow: 2;
 }

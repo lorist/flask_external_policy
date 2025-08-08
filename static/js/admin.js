@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const rulesContainer = document.getElementById('rules-container');
     const ruleForm = document.getElementById('rule-form');
+    const policyTestForm = document.getElementById('policy-test-form');
+    const testResponseOutput = document.getElementById('test-response-output');
+    const testParamsContainer = document.getElementById('test-params-container');
+    const addTestParamBtn = document.getElementById('add-test-param-btn');
     const formTitle = document.getElementById('form-title');
     const conditionsContainer = document.getElementById('conditions-container');
     const addConditionBtn = document.getElementById('add-condition-btn');
@@ -14,6 +18,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const editingRuleIdInput = document.getElementById('editing-rule-id');
     const cancelEditBtn = document.getElementById('cancel-edit-btn');
     const showCreateFormBtn = document.getElementById('show-create-form-btn');
+
+    policyTestForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const params = new URLSearchParams();
+
+        // Gather all the dynamic key-value pairs
+        document.querySelectorAll('.test-param-row').forEach(row => {
+            const key = row.querySelector('.test-param-key').value;
+            const value = row.querySelector('.test-param-value').value;
+            if (key && value) {
+                params.append(key, value);
+            }
+        });
+
+        const response = await fetch(`/admin/api/test-policy?${params.toString()}`);
+        const data = await response.json();
+
+        testResponseOutput.textContent = JSON.stringify(data, null, 2);
+    });
 
     // --- Core Functions ---
     const fetchRules = async () => {
@@ -148,6 +171,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
+    const addTestParamRow = (key = "", value = "") => {
+        const row = document.createElement('div');
+        row.className = 'test-param-row';
+
+        const keySelect = document.createElement('select');
+        keySelect.className = 'test-param-key';
+        keySelect.innerHTML = `<option value="" disabled>Select parameter...</option>`;
+        // For simplicity, we'll allow any participant field in the tester
+        PARTICIPANT_FIELDS.forEach(field => keySelect.add(new Option(field, field)));
+        keySelect.value = key;
+
+        const valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'test-param-value';
+        valueInput.placeholder = 'Value';
+        valueInput.value = value;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-condition-btn';
+        removeBtn.textContent = '-';
+        removeBtn.onclick = () => row.remove();
+
+        row.append(keySelect, valueInput, removeBtn);
+        testParamsContainer.appendChild(row);
+    };
+
     // --- Event Listeners ---
     addConditionBtn.addEventListener('click', addConditionRow);
     actionTypeSelect.addEventListener('change', updateActionParams);
@@ -239,7 +289,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    addTestParamBtn.addEventListener('click', () => addTestParamRow());
+
     // --- Initial Load ---
     fetchRules();
     resetForm();
+    addTestParamRow("remote_alias", "user@example.com");
+    addTestParamRow("local_alias", "conference.alias");
 });
