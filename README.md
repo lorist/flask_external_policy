@@ -14,6 +14,7 @@ This project is a powerful, web-based external policy server for Pexip Infinity,
     * **Enable/Disable** rules with a simple toggle switch without deleting them.
     * Grouped view to easily distinguish between service and participant rules.
 * **Dynamic Overrides:** For `continue` actions, you can dynamically override Pexip's default settings on a per-call basis for both service and participant properties.
+* **In-App Policy Tester:** A UI panel to simulate participant policy requests and preview the server's JSON response without making a live call.
 * **Database Migrations:** Uses Flask-Migrate (Alembic) to safely manage database schema changes without losing data.
 * **CLI Commands:** Includes commands for easy database setup, seeding with default rules, and complete resets for development.
 
@@ -106,8 +107,21 @@ Here, you can manage all your policy rules.
 
 In your Pexip Infinity Administrator interface, you need to point your policy profiles to this server's endpoints:
 
-* **Service Configuration URL:** `http://<your_server_ip>:5000/policy/v1/service/configuration`
 * **Participant Properties URL:** `http://<your_server_ip>:5000/policy/v1/participant/properties`
+
+---
+
+## Testing Policies
+
+The dashboard includes a **Policy Tester** panel that allows you to simulate a participant policy request and see a live preview of the server's response.
+
+1.  Navigate to the admin dashboard.
+2.  In the **Policy Tester** panel, click the **"＋ Add Parameter"** button to add one or more request parameters you want to simulate (e.g., `remote_alias`, `idp_attribute_rank`).
+3.  Fill in the values for your test parameters.
+4.  Click the **"Test Policy"** button.
+5.  The **Server Response Preview** box will update to show the exact JSON response the server would send to Pexip for that request.
+
+This allows you to verify your rules and their priorities without needing to make a live call.
 
 ---
 
