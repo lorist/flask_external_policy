@@ -298,7 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addTestParamBtn.addEventListener('click', () => addTestParamRow());
     viewLogBtn.addEventListener('click', () => {
-        window.open('/admin/logs', '_blank');
+        // window.open('/admin/logs', '_blank');
+        window.open('/admin/logs', 'LogViewerWindow', 'width=900,height=700,resizable,scrollbars');
     });
 
     new Sortable(rulesContainer, {
