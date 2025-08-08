@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pexip Policy Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Participant Policy Dashboard 🛡️</h1>
+        </header>
+
+        <section class="dashboard-stats">
+            <div class="stat-card">
+                <h2>Total Participant Rules</h2>
+                <p id="total-rules-stat">0</p>
+            </div>
+        </section>
+
+        <main class="dashboard-main">
+            <div class="rules-list-header">
+                <h2>Participant Properties Rules</h2>
+                <button id="show-create-form-btn" class="submit-btn">＋ New Rule</button>
+            </div>
+            <div id="rules-container">
+                </div>
+        </main>
+
+        <aside class="dashboard-sidebar">
+            <div class="rule-builder">
+                <h2 id="form-title">Create New Rule</h2>
+                <form id="rule-form">
+                    <input type="hidden" id="editing-rule-id">
+
+                    <label for="rule-name">Rule Name</label>
+                    <input type="text" id="rule-name" placeholder="e.g., 'Block external callers'" required>
+
+                    <label for="rule-priority">Priority</label>
+                    <input type="number" id="rule-priority" placeholder="Higher numbers run first" value="100" required>
+                    
+                    <fieldset id="conditions-fieldset">
+                        <legend>Conditions (ALL must match)</legend>
+                        <div id="conditions-container"></div>
+                        <button type="button" id="add-condition-btn">Add Condition</button>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Action</legend>
+                        <select id="action-type">
+                            <option value="continue">Continue</option>
+                            <option value="reject">Reject</option>
+                            <option value="redirect">Redirect</option>
+                        </select>
+                        <div id="action-params-container"></div>
+                    </fieldset>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="submit-btn" id="save-update-btn">Save Rule</button>
+                        <button type="button" id="cancel-edit-btn" class="cancel-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </aside>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
