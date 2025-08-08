@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Log Stream</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="log-viewer-body">
+    <div class="log-container">
+        <h1>Live Policy Log Stream</h1>
+        <pre id="log-output">Connecting to log stream...</pre>
+    </div>
+    <script src="{{ url_for('static', filename='js/log_viewer.js') }}"></script>
+</body>
+</html>

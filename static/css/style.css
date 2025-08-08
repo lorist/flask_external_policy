@@ -368,3 +368,32 @@ input:checked + .slider:before {
 #policy-test-form .submit-btn {
     flex-grow: 2;
 }
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.log-viewer-body {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+}
+.log-container {
+    padding: 2rem;
+}
+.log-container h1 {
+    color: #d4d4d4;
+    border-bottom-color: #333;
+}
+#log-output {
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    height: 85vh;
+    overflow-y: scroll;
+    background: #252526;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 1rem;
+}

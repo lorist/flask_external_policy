@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editingRuleIdInput = document.getElementById('editing-rule-id');
     const cancelEditBtn = document.getElementById('cancel-edit-btn');
     const showCreateFormBtn = document.getElementById('show-create-form-btn');
+    const viewLogBtn = document.getElementById('view-log-btn');
 
     policyTestForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -290,7 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     addTestParamBtn.addEventListener('click', () => addTestParamRow());
-
+    viewLogBtn.addEventListener('click', () => {
+        window.open('/admin/logs', '_blank');
+    });
     // --- Initial Load ---
     fetchRules();
     resetForm();

@@ -1,6 +1,9 @@
 import json
 import re
-from flask import Flask, request, jsonify, render_template
+import logging
+from logging.handlers import RotatingFileHandler
+import time
+from flask import Flask, request, jsonify, render_template, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -11,8 +14,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+# --- NEW: Logging Configuration ---
+log_file = 'policy_server.log'
+file_handler = RotatingFileHandler(log_file, maxBytes=1024 * 1024 * 5, backupCount=5) # 5 MB per file, 5 backups
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s'
+))
+app.logger.setLevel(logging.INFO)
+app.logger.addHandler(file_handler)
+app.logger.info('--- Policy Server Startup ---')
 
-# --- SQLAlchemy Models ---
+
+# --- SQLAlchemy Models (Unchanged) ---
 class Rule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -33,9 +46,9 @@ class Action(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     rule_id = db.Column(db.Integer, db.ForeignKey('rule.id'), nullable=False)
     action_type = db.Column('action', db.String(50), nullable=False)
-    parameters = db.Column(db.Text)      # For redirect destination
+    parameters = db.Column(db.Text)
     reject_reason = db.Column(db.String(255))
-    overrides = db.Column(db.Text)        # For service/participant overrides
+    overrides = db.Column(db.Text)
 
 
 # --- Helper Functions ---
@@ -49,54 +62,74 @@ def evaluate_condition(request_value, operator, rule_value):
         try:
             return re.search(rule_value, request_value) is not None
         except re.error as e:
-            print(f"Invalid regex pattern '{rule_value}': {e}")
+            app.logger.error(f"Invalid regex pattern '{rule_value}': {e}")
             return False
     return False
 
-# --- This helper function is re-introduced to keep the code clean ---
 def build_policy_response(rule):
-    """Helper to build the custom JSON response with a nested result."""
     action_type = rule.action.action_type
-    # Add the 'status' key to all responses
     response_data = {'status': 'success', 'action': action_type}
-
     if action_type == 'reject':
         reason = rule.action.reject_reason or 'Rejected by policy'
         response_data['result'] = {'reject_reason': reason}
     elif action_type == 'redirect':
         params = json.loads(rule.action.parameters) if rule.action.parameters else {}
-        response_data['result'] = params # e.g., {'destination': '...'}
+        response_data['result'] = params
     elif action_type == 'continue':
         if rule.action.overrides:
             overrides = json.loads(rule.action.overrides)
             response_data['result'] = overrides
-            
-    print(f"Matched Rule: {rule.name}. Responding with: {json.dumps(response_data)}")
     return jsonify(response_data)
 
-# --- Policy Endpoints ---
+# --- Policy Endpoints (Updated with Logging) ---
 @app.route('/policy/v1/service/configuration', methods=['GET'])
 def service_configuration():
-    request_data = dict(request.args)
+    app.logger.info(f"--> SERVICE REQUEST: {request.url}")
     rules = Rule.query.filter_by(policy_type='service', is_enabled=True).order_by(Rule.priority.desc(), Rule.id.asc()).all()
     for rule in rules:
-        if all(evaluate_condition(request_data.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
-            return build_policy_response(rule)
+        if all(evaluate_condition(request.args.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
+            response = build_policy_response(rule)
+            app.logger.info(f"<-- RESPONSE: Matched '{rule.name}'. Sending {response.get_data(as_text=True).strip()}")
+            return response
+    app.logger.info("<-- RESPONSE: No match. Sending default 'continue'.")
     return jsonify({"status": "success", "action": "continue"})
 
 @app.route('/policy/v1/participant/properties', methods=['GET'])
 def participant_properties():
-    request_data = dict(request.args)
+    app.logger.info(f"--> PARTICIPANT REQUEST: {request.url}")
     rules = Rule.query.filter_by(policy_type='participant', is_enabled=True).order_by(Rule.priority.desc(), Rule.id.asc()).all()
     for rule in rules:
-        if all(evaluate_condition(request_data.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
-            return build_policy_response(rule)
+        if all(evaluate_condition(request.args.get(c.field, ''), c.operator, c.value) for c in rule.conditions):
+            response = build_policy_response(rule)
+            app.logger.info(f"<-- RESPONSE: Matched '{rule.name}'. Sending {response.get_data(as_text=True).strip()}")
+            return response
+    app.logger.info("<-- RESPONSE: No match. Sending default 'continue'.")
     return jsonify({"status": "success", "action": "continue"})
 
-# --- Admin UI & API (Full, Correct Versions) ---
+# --- Admin UI & API ---
 @app.route('/admin')
 def admin_page():
     return render_template('admin.html')
+
+# --- NEW: Log Viewer Endpoints ---
+@app.route('/admin/logs')
+def log_viewer_page():
+    """Renders the log viewer page."""
+    return render_template('log_viewer.html')
+
+@app.route('/admin/log-stream')
+def log_stream():
+    """Streams the contents of the log file to the client."""
+    def generate():
+        with open(log_file, 'r') as f:
+            f.seek(0, 2) # Go to the end of the file
+            while True:
+                line = f.readline()
+                if not line:
+                    time.sleep(0.1)
+                    continue
+                yield f"data: {line}\n\n"
+    return Response(generate(), mimetype='text/event-stream')
 
 @app.route('/admin/api/rules', methods=['GET', 'POST'])
 def handle_rules_collection():
