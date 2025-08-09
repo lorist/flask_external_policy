@@ -2,6 +2,9 @@
 
 This project is a powerful, web-based external policy server for Pexip Infinity, built with Flask. It allows administrators to create and manage dynamic, rule-based policies for call control through an intuitive dashboard interface, removing the need to write custom code for each policy change.
 
+
+![Screenshot of Policy UI](./external_participant_policy.png)
+
 ## Features
 
 * **Web Dashboard:** A clean, modern dashboard to create, view, edit, and delete policy rules.
