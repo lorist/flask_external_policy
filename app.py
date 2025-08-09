@@ -219,7 +219,7 @@ def handle_rule(rule_id):
     elif request.method == 'PUT':
         data = request.json
         rule.name = data['name']
-        rule.priority = data['priority']
+        # rule.priority = data['priority']
         rule.policy_type = data['policy_type']
         rule.action.action_type = data['action']['type']
         rule.action.parameters = json.dumps(data['action']['parameters'])
