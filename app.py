@@ -187,12 +187,6 @@ def export_participant_policy():
 
     return jsonify({"policy": "\n".join(policy_lines)})
 
-
-# --- ALL OTHER ENDPOINTS (UNCHANGED) ---
-# ... (service_configuration, participant_properties, admin_page, log_stream, etc.)
-# ... The rest of your app.py file remains the same.
-
-
 # --- Policy Endpoints (Updated with Logging) ---
 @app.route('/policy/v1/service/configuration', methods=['GET'])
 def service_configuration():
