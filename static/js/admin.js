@@ -20,6 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const showCreateFormBtn = document.getElementById('show-create-form-btn');
     const viewLogBtn = document.getElementById('view-log-btn');
 
+    //  Export Policy Elements ---
+    const exportPolicyBtn = document.getElementById('export-policy-btn');
+    const exportModal = document.getElementById('export-modal');
+    const closeExportModalBtn = document.getElementById('close-export-modal-btn');
+    const exportedPolicyCode = document.getElementById('exported-policy-code');
+    const copyPolicyBtn = document.getElementById('copy-policy-btn');
+
     policyTestForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const params = new URLSearchParams();
@@ -91,7 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const addConditionRow = (condition = {}) => {
         const row = document.createElement('div');
         row.className = 'condition-row';
-        row.innerHTML = `<select class="condition-field" required></select><select class="condition-operator"><option value="equals">equals</option><option value="contains">contains</option><option value="does_not_contain">does not contain</option><option value="starts_with">starts with</option><option value="ends_with">ends with</option><option value="regex">regex</option></select><input type="text" class="condition-value" placeholder="Value / Regex Pattern" required><button type="button" class="remove-condition-btn">-</button>`;
+        row.innerHTML = `
+            <select class="condition-field" required></select>
+            <select class="condition-operator">
+                <option value="equals">equals</option>
+                <option value="contains">contains</option>
+                <option value="starts_with">starts with</option>
+                <option value="ends_with">ends with</option>
+                <option value="regex_match">regex match</option>
+            </select>
+            <input type="text" class="condition-value" placeholder="Value or Pattern" required>
+            <button type="button" class="remove-condition-btn">-</button>
+        `;
         row.querySelector('.condition-operator').value = condition.operator || 'equals';
         row.querySelector('.condition-value').value = condition.value || '';
         conditionsContainer.appendChild(row);
@@ -320,6 +338,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // --- Event Listeners and Functions for Export ---
+
+    const handleExportPolicy = async () => {
+        try {
+            const response = await fetch('/admin/api/export-policy');
+            if (!response.ok) throw new Error('Failed to fetch policy from server.');
+            const data = await response.json();
+
+            exportedPolicyCode.textContent = data.policy;
+            exportModal.style.display = 'flex';
+        } catch (error) {
+            console.error("Export Error:", error);
+            alert('Could not generate the policy. See console for details.');
+        }
+    };
+
+    const handleCopyPolicy = async () => {
+        try {
+            await navigator.clipboard.writeText(exportedPolicyCode.textContent);
+            copyPolicyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyPolicyBtn.textContent = 'Copy';
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            alert('Failed to copy policy to clipboard.');
+        }
+    };
+
+    // Attach event listeners
+    exportPolicyBtn.addEventListener('click', handleExportPolicy);
+    closeExportModalBtn.addEventListener('click', () => exportModal.style.display = 'none');
+    copyPolicyBtn.addEventListener('click', handleCopyPolicy);
+
+    // Close modal if clicking on the background overlay
+    exportModal.addEventListener('click', (e) => {
+        if (e.target === exportModal) {
+            exportModal.style.display = 'none';
+        }
+    });
     // --- Initial Load ---
     fetchRules();
     resetForm();
