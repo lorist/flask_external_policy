@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  policy-server:
+    build: .
+    container_name: pexip-policy-server
+    ports:
+      - "5001:5001"
+    volumes:
+      # This maps a local 'data' directory to the '/app/instance' directory in the container.
+      # Your database and logs will be stored here, persisting them on your host machine.
+      - ./data:/app/instance
+    environment:
+      - FLASK_APP=app.py

@@ -10,6 +10,7 @@ A key feature is its ability to **export** the rules created in the UI into the 
 
 * **Web Dashboard:** A clean, modern dashboard to create, view, edit, and delete policy rules.
 * **Native Policy Exporter:** Automatically generate a Pexip-compliant Local Participant Policy. The exporter correctly uses `pex_regex_search` and `{% set %}` variables for optimal performance.
+* **Docker Support:** Includes `Dockerfile` and `docker-compose.yml` for easy, containerized deployment.
 * **Dual Policy Support:** Handles both **Service Configuration** and **Participant Properties** policy requests.
 * **Dynamic Rule Engine:**
     * Create rules with multiple conditions.
@@ -26,137 +27,113 @@ A key feature is its ability to **export** the rules created in the UI into the 
 
 ---
 
-## Requirements
+## Getting Started
 
+You can run this application using Docker (recommended) or as a standard local Python application.
+
+### Option 1: Running with Docker (Recommended) 🐳
+
+This is the easiest and most reliable way to run the server.
+
+#### Prerequisites
+* [Docker](https://docs.docker.com/get-docker/)
+* [Docker Compose](https://docs.docker.com/compose/install/)
+
+#### Instructions
+
+1.  **Build and Start the Container**
+    From the root of the project directory, run the following command. This will build the Docker image based on the `Dockerfile` and start the container in the background.
+
+    ```bash
+    docker compose up --build -d
+    ```
+
+2.  **Set Up the Database (First-Time Only)**
+    The first time you start the container, you need to run the database migrations and seeding commands *inside* the running container.
+
+    ```bash
+    # Apply migrations to create the database tables
+    docker compose exec policy-server flask db upgrade
+
+    # (Optional) Seed the database with example rules
+    docker compose exec policy-server flask seed-db
+    ```
+
+Your application is now running! You can access the admin dashboard at `http://localhost:5001/admin`.
+
+#### Managing the Container
+* **To view live logs:**
+    ```bash
+    docker compose logs -f policy-server
+    ```
+* **To stop the container:**
+    ```bash
+    docker compose down
+    ```
+
+---
+
+### Option 2: Running Locally (Without Docker) 🐍
+
+Follow these steps to run the application directly on your machine.
+
+#### Prerequisites
 * Python 3.8+
 * `pip` for package installation
 
----
+#### Setup Instructions
 
-## Installation & Setup
+1.  **Set Up the Environment**
+    First, clone the repository and create a Python virtual environment.
+    ```bash
+    # Clone the repository
+    git clone <your-repo-url>
+    cd <your-repo-folder>
 
-Follow these steps to get the application running locally.
+    # Create and activate a virtual environment
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+    ```
 
-### 1. Set Up the Environment
+2.  **Install Dependencies**
+    Install the required Python packages from the `requirements.txt` file.
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-First, clone the repository and create a Python virtual environment.
+3.  **Set Up the Database**
+    This application uses Flask-Migrate to manage the database.
+    ```bash
+    # Set the FLASK_APP environment variable
+    export FLASK_APP=app.py  # On Windows, use: set FLASK_APP=app.py
 
+    # 1. Initialize the migration environment (only run this once per project)
+    flask db init
+
+    # 2. Generate the initial migration script from your models
+    flask db migrate -m "Initial migration"
+
+    # 3. Apply the migration to create the database file
+    flask db upgrade
+    ```
+
+4.  **(Optional) Seed the Database**
+    You can populate the database with a few default example rules to get started.
+    ```bash
+    flask seed-db
+    ```
+
+#### Running the Server
+Start the Flask development server.
 ```bash
-# Clone the repository (if you haven't already)
-git clone <your-repo-url>
-cd <your-repo-folder>
-
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+flask run --host=0.0.0.0 --port=5001
 ```
-
-### 2. Install Dependencies
-
-Install the required Python packages. For easy deployment, you can save your dependencies to a file: `pip freeze > requirements.txt` and then install from it using `pip install -r requirements.txt`.
-
-```bash
-pip install Flask Flask-SQLAlchemy Flask-Migrate
-```
-
-### 3. Set Up the Database
-
-This application uses Flask-Migrate to manage the database.
-
-```bash
-# Set the FLASK_APP environment variable
-export FLASK_APP=app.py  # On Windows, use: set FLASK_APP=app.py
-
-# 1. Initialize the migration environment (only run this once per project)
-flask db init
-
-# 2. Generate the initial migration script from your models
-flask db migrate -m "Initial migration"
-
-# 3. Apply the migration to create the database file
-flask db upgrade
-```
-
-### 4. (Optional) Seed the Database
-
-You can populate the database with a few default example rules to get started.
-
-```bash
-flask seed-db
-```
+The server will now be running. Access the admin dashboard at `http://<your_server_ip>:5001/admin`.
 
 ---
 
-## Usage
-
-### 1. Running the Server
-
-Start the Flask development server. The `--host=0.0.0.0` flag is crucial to make the server accessible to other machines on your network, like your Pexip Conferencing Nodes.
-
-```bash
-flask run --debug --host=0.0.0.0 --port=5001
-```
-
-The server will be running on port `5001`.
-
-### 2. Accessing the Admin Dashboard
-
-Open your web browser and navigate to the admin interface:
-
-`http://<your_server_ip>:5001/admin`
-
-Here, you can manage all your policy rules.
-
-### 3. Using the Policy Exporter
-
-1.  Create and enable the rules you need for your policy.
-2.  On the main dashboard, click the **Export Participant Policy** button.
-3.  A modal window will appear with the generated Pexip Local Policy.
-4.  Click the **Copy** button and paste the code directly into the Pexip Infinity Administrator interface at `Policy` > `Local Participant Policy`.
-
-### 4. Configuring Pexip Infinity
+## Pexip Infinity Configuration
 
 In your Pexip Infinity Administrator interface, configure an **External Policy Server** (`Platform` > `External Policy Servers`) and point it to this server's endpoints:
 
-* **Participant Properties:** `http://<your_server_ip>:5001/policy/v1/participant/properties`
-
----
-
-## Troubleshooting & Monitoring
-
-### In-App Policy Tester
-
-The dashboard includes a **Policy Tester** panel that allows you to simulate a participant policy request and see a live preview of the server's response.
-
-1.  Navigate to the admin dashboard.
-2.  In the **Policy Tester** panel, enter test values for the parameters you want to simulate (e.g., `remote_alias`, `idp_attribute_rank`).
-3.  Click the **"Test Policy"** button.
-4.  The **Server Response Preview** box will update to show the exact JSON response the server would send to Pexip for that request.
-
-### Live Log Viewer
-
-For real-time monitoring, the application provides a live log stream.
-
-1.  From the main dashboard, click the **"View Live Log"** button. This will open the log viewer in a new tab.
-2.  The viewer will stream all incoming requests and the corresponding policy responses as they happen. This is the best way to see the full request URL from Pexip and troubleshoot why a specific rule did or did not match.
-3.  The server also writes these logs to a rotating file named `policy_server.log` in the project's root directory.
-
----
-
-## Database Management Commands
-
-* **Reset the Database:** To completely wipe and re-seed the database during development, use the custom `reset-db` command.
-
-    ```bash
-    flask reset-db
-    ```
-
-* **Making Schema Changes:** If you modify the models in `app.py` (e.g., add a new column), follow this two-step process to safely update the database:
-
-    ```bash
-    # 1. Generate a new migration script
-    flask db migrate -m "A short message about your changes"
-
-    # 2. Apply the changes to the database
-    flask db upgrade
-    ```
+* **Participant Properties:** `http://<your_server_ip>:5001`
