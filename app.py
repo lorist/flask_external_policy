@@ -9,44 +9,44 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
 # --- App & DB Setup local run---
-# app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rules_v3.db'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# db = SQLAlchemy(app)
-# migrate = Migrate(app, db)
-
-# # --- Logging Configuration ---
-# log_file = 'policy_server.log'
-# file_handler = RotatingFileHandler(log_file, maxBytes=1024 * 1024 * 5, backupCount=5)
-# file_handler.setFormatter(logging.Formatter(
-#     '%(asctime)s %(levelname)s: %(message)s'
-# ))
-# app.logger.setLevel(logging.DEBUG) # Keep in debug mode for now
-# app.logger.addHandler(file_handler)
-# app.logger.info('--- Policy Server Startup ---')
-
-# --- App & DB Setup docker run---
 app = Flask(__name__)
-
-# UPDATED: Point database and logs to a persistent volume directory
-instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
-os.makedirs(instance_path, exist_ok=True)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(instance_path, "rules_v3.db")}'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rules_v3.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # --- Logging Configuration ---
-# UPDATED: Store the log file in the same persistent directory
-log_file = os.path.join(instance_path, 'policy_server.log')
+log_file = 'policy_server.log'
 file_handler = RotatingFileHandler(log_file, maxBytes=1024 * 1024 * 5, backupCount=5)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s'
 ))
-app.logger.setLevel(logging.DEBUG)
+app.logger.setLevel(logging.DEBUG) # Keep in debug mode for now
 app.logger.addHandler(file_handler)
 app.logger.info('--- Policy Server Startup ---')
+
+# --- App & DB Setup docker run---
+# app = Flask(__name__)
+
+# # UPDATED: Point database and logs to a persistent volume directory
+# instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+# os.makedirs(instance_path, exist_ok=True)
+
+# app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(instance_path, "rules_v3.db")}'
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# db = SQLAlchemy(app)
+# migrate = Migrate(app, db)
+
+# # --- Logging Configuration ---
+# # UPDATED: Store the log file in the same persistent directory
+# log_file = os.path.join(instance_path, 'policy_server.log')
+# file_handler = RotatingFileHandler(log_file, maxBytes=1024 * 1024 * 5, backupCount=5)
+# file_handler.setFormatter(logging.Formatter(
+#     '%(asctime)s %(levelname)s: %(message)s'
+# ))
+# app.logger.setLevel(logging.DEBUG)
+# app.logger.addHandler(file_handler)
+# app.logger.info('--- Policy Server Startup ---')
 
 # --- SQLAlchemy Models ---
 class Rule(db.Model):
